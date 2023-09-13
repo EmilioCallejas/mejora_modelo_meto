@@ -1,7 +1,7 @@
 
 from netCDF4 import Dataset
 import wrf
-from wrf import getvar, ALL_TIMES, ll_to_xy
+from wrf import getvar, ALL_TIMES, ll_to_xy, interplevel
 import pandas as pd
 import os
 
@@ -51,6 +51,33 @@ for archivo in dirs:
 		T2=T2[:,lat_index,lon_index]
 		ws10=uvmet10[0,:,lat_index,lon_index]
 		wd10=uvmet10[1,:,lat_index,lon_index]
+
+
+        ## probando con variables 3d
+                tk = getvar(wrf_data,"tk", timeidx=ALL_TIMES, method="cat")
+                P = getvar(wrf_data,"pressure", timeidx=ALL_TIMES, method="cat")
+                td = getvar(wrf_data,"td", timeidx=ALL_TIMES, method="cat")
+                rh = getvar(wrf_data,"rh", timeidx=ALL_TIMES, method="cat")
+                uvmet = getvar(wrf_data,"uvmet_wspd_wdir", timeidx=ALL_TIMES, method="cat")
+
+                z = getvar(wrf_data,"z", timeidx=ALL_TIMES, method="cat")
+
+        ##interpoland la altura correspondiente a las variables
+                tk=interplevel(tk,z,68) #la estacion se estacion a 68 amsl(por encima del nivel promedio del mar)
+                P = interplevel(P,z,68)
+                td = interplevel(td,z,68)
+                rh = interplevel(rh,z,68)
+                uvmet = interplevel(uvmet,z,68)
+
+        ##obteniendo los datos 3d en la coordenada correspodiente
+                tk=tk[:,lat_index,lon_index]
+                P = P[:,lat_index,lon_index]
+                td = td[:,lat_index,lon_index]
+                rh = rh[:,lat_index,lon_index]
+                ws = uvmet[0,:,lat_index,lon_index]
+                wd = uvmet[1,:,lat_index,lon_index]
+	##no para obtener el dataframe de estas variables, me salta un error si lo hago como el de las variables 2d
+
 		
 	## creamos data frame con columnas por variable, manteniendo el index		
 		df = pd.DataFrame({
