@@ -1,0 +1,26 @@
+#Ordenar por voltaje
+dfup = df[["Vup","Iup"]].sort_values(by='Vup') ; dfdw = df[["Vdw","Idw"]] 
+
+#Este paso es necesario en algunas versiones de code2 y code3.2  
+dfdw = dfdw.iloc[::-1]                  #Articialmente, revierto el paso dle tiempo para simular un "up" run con un "down" run
+dfdw.index = dfdw.index[::-1]
+
+#Área de interés: entre ambos ejes coordenados y la curva
+area_forward = np.abs(np.trapz(dfup['Iup'].loc[(dfup['Iup']<0) & (dfup['Vup']>0)] /Ama, dfup['Vup'].loc[(dfup['Iup']<0) & (dfup['Vup']>0)]))
+area_reverse = np.abs(np.trapz(dfdw['Idw'].loc[(dfdw['Idw']<0) & (dfdw['Vdw']>0)] /Ama, dfdw['Vdw'].loc[(dfdw['Idw']<0) & (dfdw['Vdw']>0)]))
+
+hysteresis = abs(area_forward - area_reverse) / max(area_forward, area_reverse)             #areas > 0
+
+print(f"area_forward = {round(area_forward,5)}mA*V/cm^2 \narea_reverse = {round(area_reverse,5)}mA*V/cm^2")
+
+#Gráfica
+plt.gca().set_facecolor('lavender') 
+plt.plot(dfup['Vup'], dfup['Iup']/Ama, "-r", label="forward") ;plt.grid(linestyle="dashed")    #Añadir el área
+plt.plot(dfdw['Vdw'], dfdw['Idw']/Ama,"-b", label="Reverse")               #Se ve bastante poca histéresis
+plt.scatter(dfup['Vup'].iloc[0],dfup['Iup'][0], marker="*", c="k", label=f"HI = {round(100*hysteresis,2)}%") 
+plt.legend(loc="upper left", fontsize=12) 
+plt.axhline(y = 0., color = 'g', linestyle = '--') 
+plt.axvline(x = 0., color = 'g', linestyle = '--') 
+#plt.ylim(-0.00075,0.0005)
+plt.ylabel("Current Density mA/cm^2") ; plt.xlabel("Voltage [V]") ; plt.title("Up and Down runs")
+plt.show()
